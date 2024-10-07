@@ -7,25 +7,28 @@ d3.json(earthquakeURL).then(function(data) {
     createFeatures(data.features);
 });
 
+function returnColor(depth){
+    return depth > 90 ? 'red':
+           depth > 70 ? 'orangered':
+           depth > 50 ? 'orange':
+           depth > 30 ? 'gold':
+           depth > 10 ? 'yellow':
+                        'lightgreen';
+
+};
+
+function returnRadius(magnitude){
+    return magnitude === 0 ? 1:
+                 magnitude * 4;
+};
+
 
 function createFeatures(earthquakeData) {
 
     console.log('Entering createFeatures');
     console.log('-'.repeat(20));
 
-    function returnColor(depth){
-        return depth > 90 ? 'red':
-               depth > 70 ? 'orangered':
-               depth > 50 ? 'orange':
-               depth > 30 ? 'gold':
-               depth > 10 ? 'yellow':
-                            'lightgreen';
-    
-    };
-    function returnRadius(magnitude){
-        return magnitude === 0 ? 1:
-                     magnitude * 4;
-    }
+
     function onEachFeature(feature, layer) {
         layer.bindPopup(`<h3>${feature.properties.place}</h3><hr><p>Magnitude: ${feature.properties.mag}</p><p>Depth: ${feature.geometry.coordinates[2]}</p>`);
     }
@@ -51,7 +54,6 @@ function createFeatures(earthquakeData) {
 function createMap(earthQuakes) {
 
     console.log('Entering createMap()');
-    // console.log(earthQuakes);
     console.log('-'.repeat(20));
 
     // Define variables for our tile layers.
@@ -77,6 +79,25 @@ function createMap(earthQuakes) {
         zoom: 6,
         layers: [street, earthQuakes]
     });
+
+    // add a legend
+    let legend = L.control({position:'bottomright'});
+    legend.onAdd = function() {
+        let div = L.DomUtil.create('div','info legend'),
+            depth=[-10,10,30,50,70,90];
+
+        div.innerHTML += "<h3 style='text-align: center'>Depth</h3>";
+
+        for (let i = 0; i < depth.length; i++) {
+            div.innerHTML +=
+            '<i style="background:' + returnColor(depth[i] + 1) + '"></i> ' + depth[i] + (depth[i+1] ? '&ndash;' + depth[i+1] + '<br>' : '+');
+            console.log(depth[i+1] ? '&ndash;' + depth[i+1] + '<br>' : '+');
+        };
+        return div;
+            
+    };
+
+    legend.addTo(myMap);
 
     // Pass our map layers into our layer control.
     // Add the layer control to the map.
